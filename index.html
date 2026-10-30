@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Daily Habits — 1% Better Every Day</title>
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=gambetta@500,600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f6f2ea; --surface:#fffdf8; --ink:#2a2620; --muted:#7a7166; --line:#e6dfd2;
+    --accent:#3f6b4f; --accent-soft:#e3ece4; --bad:#b4483a; --bad-soft:#f6e1dc;
+    --radius:14px; --serif:'Gambetta',Georgia,serif; --sans:'Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+  header h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,6vw,40px);line-height:1.1;letter-spacing:-.01em}
+  header p.quote{color:var(--muted);margin-top:8px;font-size:15px}
+  .datebar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:28px 0 16px}
+  .datebar button{background:var(--surface);border:1px solid var(--line);border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer;color:var(--ink)}
+  .datebar button:hover{border-color:var(--ink)}
+  .datebar button:disabled{opacity:.35;cursor:default}
+  .date{text-align:center}
+  .date strong{display:block;font-size:18px}
+  .date span{color:var(--muted);font-size:13px}
+  .date a{color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline}
+  .progress{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;gap:18px;align-items:center}
+  .bar{flex:1;height:10px;background:var(--line);border-radius:99px;overflow:hidden;display:flex}
+  .bar i{display:block;flex-shrink:0;height:100%;transition:width .3s}
+  .bar .g{background:var(--accent)} .bar .r{background:var(--bad)}
+  .stats{font-size:14px;color:var(--muted);white-space:nowrap}
+  .stats b{color:var(--ink)}
+  .warn{margin-top:12px;background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 14px;font-size:14px;display:none}
+  section{margin-top:26px}
+  section h2{font-family:var(--serif);font-weight:500;font-size:20px;display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+  section h2 small{font-family:var(--sans);font-size:13px;color:var(--muted)}
+  ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:12px;transition:background .2s,border-color .2s}
+  li.done{background:var(--accent-soft);border-color:#c5d8c9}
+  li.missed{background:var(--bad-soft);border-color:#ecc6be}
+  .txt{flex:1;min-width:0}
+  .txt .name{font-weight:500}
+  li.done .name{text-decoration:line-through;text-decoration-color:rgba(63,107,79,.5)}
+  .txt .tip{font-size:13px;color:var(--muted)}
+  .streak{font-size:12px;color:var(--accent);font-weight:700;white-space:nowrap}
+  .btns{display:flex;gap:6px}
+  .btn{width:42px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:20px;font-weight:700;cursor:pointer;display:grid;place-items:center;color:var(--muted);transition:all .15s}
+  .btn.ok:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.no:hover{border-color:var(--bad);color:var(--bad)}
+  .btn.ok.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.no.on{background:var(--bad);border-color:var(--bad);color:#fff}
+  .del{background:none;border:none;color:var(--bad);cursor:pointer;font-size:13px;text-decoration:underline;padding:4px;display:none}
+  body.editing .del{display:block}
+  .add{display:none;gap:8px;margin-top:8px}
+  body.editing .add{display:flex}
+  .add input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+  .add button,.tool{padding:10px 14px;border-radius:10px;border:1px solid var(--ink);background:var(--ink);color:#fff;font:inherit;font-weight:500;cursor:pointer}
+  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px}
+  .tool.ghost{background:transparent;color:var(--ink)}
+  .week{margin-top:32px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;overflow-x:auto}
+  .week h2{font-family:var(--serif);font-weight:500;font-size:20px;margin-bottom:12px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left;padding-right:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  th{color:var(--muted);font-weight:500}
+  td.y{color:var(--accent);font-weight:700} td.n{color:var(--bad);font-weight:700} td.e{color:var(--line)}
+  .rules{margin-top:32px;color:var(--muted);font-size:14px}
+  .rules h2{font-family:var(--serif);color:var(--ink);font-weight:500;font-size:20px;margin-bottom:8px}
+  .rules li{background:none;border:none;padding:4px 0;display:list-item;list-style:disc;margin-left:18px}
+  @media (max-width:480px){
+    .wrap{padding:24px 14px 60px}
+    .tip{display:none}
+    .btn{width:40px;height:40px}
+    .progress{flex-direction:column;align-items:stretch;gap:8px}
+    .bar{flex:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Get 1% better every day.</h1>
+    <p class="quote">"You do not rise to the level of your goals. You fall to the level of your systems." — James Clear</p>
+  </header>
+
+  <div class="datebar">
+    <button id="prev" aria-label="Previous day">‹</button>
+    <div class="date"><strong id="dateLabel"></strong><span id="dateSub"></span></div>
+    <button id="next" aria-label="Next day">›</button>
+  </div>
+
+  <div class="progress">
+    <div class="bar"><i class="g" id="barG"></i><i class="r" id="barR"></i></div>
+    <div class="stats"><b id="doneN">0</b> ✓ · <b id="missN">0</b> ✗ · <b id="leftN">0</b> left</div>
+  </div>
+  <div class="warn" id="warn"></div>
+
+  <div id="groups"></div>
+
+  <div class="tools">
+    <button class="tool ghost" id="editBtn">Edit habits</button>
+    <button class="tool ghost" id="resetDay">Clear this day</button>
+  </div>
+
+  <div class="week">
+    <h2>Last 7 days</h2>
+    <table id="weekTable"></table>
+  </div>
+
+  <div class="rules">
+    <h2>Rules to remember</h2>
+    <ul>
+      <li>Make it obvious, attractive, easy, and satisfying.</li>
+      <li>Never miss twice. One ✗ is an accident; two in a row is a new habit.</li>
+      <li>Two-minute rule: on a hard day, do the smallest version and still tick ✓.</li>
+      <li>Every ✓ is a vote for the person you want to become.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const DEFAULTS = [
+  {g:'Morning', items:[
+    ['Wake up at the same time','Same time every day, even weekends'],
+    ['Drink a glass of water','Keep the glass next to your bed'],
+    ['Make your bed','A small win to start the day'],
+    ['10 minutes of exercise','Push-ups, stretching or a short run'],
+    ['Write your top 3 tasks for today','Plan before you open your phone'],
+  ]},
+  {g:'Daytime', items:[
+    ['90 minutes of deep work','Phone in another room, one task only'],
+    ['Read 10 pages','Habit stacking: after lunch, I read'],
+    ['Walk 20 minutes','Or 5,000+ steps'],
+    ['Eat healthy meals','More vegetables, less sugar'],
+    ['Learn or build something new for 30 min','A course, a side project or new skill'],
+  ]},
+  {g:'Evening', items:[
+    ['Tidy your space for 5 minutes','Reset your environment for tomorrow'],
+    ['Review the day and fill in this list','What went well? What will you improve?'],
+    ['Prepare for tomorrow','Clothes, bag, desk ready'],
+    ['No screens 30 minutes before bed','Read, pray, journal or talk instead'],
+    ['Sleep by 11 PM','7–8 hours of sleep'],
+  ]},
+];
+
+// storage with fallback
+const mem = {};
+const store = {
+  get(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null }catch(e){ return mem[k] ?? null } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){ mem[k] = v } }
+};
+
+let habits = store.get('ah_habits');
+if(!habits){
+  habits = []; let id = 1;
+  DEFAULTS.forEach(grp => grp.items.forEach(([name,tip]) => habits.push({id:'h'+(id++), g:grp.g, name, tip})));
+  store.set('ah_habits', habits);
+}
+let log = store.get('ah_log') || {}; // { 'YYYY-MM-DD': { hId: 'y'|'n' } }
+
+const pad = n => String(n).padStart(2,'0');
+const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d };
+let current = today();
+
+function addDays(d,n){ const x = new Date(d); x.setDate(x.getDate()+n); return x }
+
+function streak(hId, fromDate){
+  let s = 0, d = new Date(fromDate);
+  // if today not done yet, count from yesterday
+  if((log[key(d)]||{})[hId] !== 'y') d = addDays(d,-1);
+  while((log[key(d)]||{})[hId] === 'y'){ s++; d = addDays(d,-1) }
+  return s;
+}
+
+function setMark(hId, val){
+  const k = key(current);
+  log[k] = log[k] || {};
+  if(log[k][hId] === val) delete log[k][hId]; else log[k][hId] = val;
+  store.set('ah_log', log);
+  render();
+}
+
+function render(){
+  const k = key(current), day = log[k] || {};
+  const isToday = k === key(today());
+  document.getElementById('dateLabel').textContent = current.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+  const sub = document.getElementById('dateSub');
+  sub.innerHTML = isToday ? 'Today' : '<a id="goToday">Back to today</a>';
+  if(!isToday) document.getElementById('goToday').onclick = () => { current = today(); render() };
+  document.getElementById('next').disabled = isToday;
+
+  const groups = document.getElementById('groups'); groups.innerHTML = '';
+  const order = [...new Set(habits.map(h=>h.g))];
+  ['Morning','Daytime','Evening'].forEach(g => { if(!order.includes(g)) order.push(g) });
+  order.forEach(g => {
+    const list = habits.filter(h => h.g === g);
+    const done = list.filter(h => day[h.id]==='y').length;
+    const sec = document.createElement('section');
+    sec.innerHTML = `<h2>${g} <small>${done}/${list.length}</small></h2><ul></ul>
+      <form class="add"><input placeholder="Add a ${g.toLowerCase()} habit…" required /><button>Add</button></form>`;
+    const ul = sec.querySelector('ul');
+    list.forEach(h => {
+      const st = day[h.id];
+      const s = streak(h.id, current);
+      const li = document.createElement('li');
+      li.className = st==='y' ? 'done' : st==='n' ? 'missed' : '';
+      li.innerHTML = `<div class="txt"><div class="name"></div>${h.tip?'<div class="tip"></div>':''}</div>
+        ${s>1?`<span class="streak">${s} day streak</span>`:''}
+        <div class="btns">
+          <button class="btn ok ${st==='y'?'on':''}" aria-label="Done" title="Done">✓</button>
+          <button class="btn no ${st==='n'?'on':''}" aria-label="Missed" title="Missed">✗</button>
+        </div>
+        <button class="del" aria-label="Delete habit" title="Delete">Remove</button>`;
+      li.querySelector('.name').textContent = h.name;
+      if(h.tip) li.querySelector('.tip').textContent = h.tip;
+      li.querySelector('.ok').onclick = () => setMark(h.id,'y');
+      li.querySelector('.no').onclick = () => setMark(h.id,'n');
+      li.querySelector('.del').onclick = () => { habits = habits.filter(x=>x.id!==h.id); store.set('ah_habits',habits); render() };
+      ul.appendChild(li);
+    });
+    sec.querySelector('form').onsubmit = e => {
+      e.preventDefault();
+      const v = e.target.querySelector('input').value.trim(); if(!v) return;
+      habits.push({id:'h'+Date.now(), g, name:v, tip:''});
+      store.set('ah_habits',habits); render();
+    };
+    groups.appendChild(sec);
+  });
+
+  // progress
+  const total = habits.length;
+  const y = habits.filter(h=>day[h.id]==='y').length, n = habits.filter(h=>day[h.id]==='n').length;
+  document.getElementById('doneN').textContent = y;
+  document.getElementById('missN').textContent = n;
+  document.getElementById('leftN').textContent = total-y-n;
+  document.getElementById('barG').style.width = total ? (y/total*100)+'%' : 0;
+  document.getElementById('barR').style.width = total ? (n/total*100)+'%' : 0;
+
+  // never miss twice
+  const yday = log[key(addDays(current,-1))] || {};
+  const risky = habits.filter(h => yday[h.id]==='n' && day[h.id]!=='y');
+  const warn = document.getElementById('warn');
+  if(risky.length){
+    warn.style.display='block';
+    warn.textContent = `Never miss twice: you missed "${risky.map(h=>h.name).slice(0,3).join('", "')}"${risky.length>3?' and more':''} yesterday. Do even a 2-minute version today.`;
+  } else warn.style.display='none';
+
+  // week table
+  const days = [...Array(7)].map((_,i)=>addDays(current,i-6));
+  let html = '<tr><th>Habit</th>' + days.map(d=>`<th>${d.toLocaleDateString(undefined,{weekday:'narrow'})}<br>${d.getDate()}</th>`).join('') + '</tr>';
+  habits.forEach(h => {
+    html += `<tr><td title="${h.name.replace(/"/g,'&quot;')}">${h.name.replace(/</g,'&lt;')}</td>` + days.map(d => {
+      const v = (log[key(d)]||{})[h.id];
+      return v==='y' ? '<td class="y">✓</td>' : v==='n' ? '<td class="n">✗</td>' : '<td class="e">·</td>';
+    }).join('') + '</tr>';
+  });
+  document.getElementById('weekTable').innerHTML = html;
+}
+
+document.getElementById('prev').onclick = () => { current = addDays(current,-1); render() };
+document.getElementById('next').onclick = () => { if(key(current)!==key(today())){ current = addDays(current,1); render() } };
+document.getElementById('editBtn').onclick = e => {
+  document.body.classList.toggle('editing');
+  e.target.textContent = document.body.classList.contains('editing') ? 'Done editing' : 'Edit habits';
+};
+document.getElementById('resetDay').onclick = () => { delete log[key(current)]; store.set('ah_log',log); render() };
+render();
+</script>
+</body>
+</html>
