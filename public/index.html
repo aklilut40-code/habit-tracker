@@ -119,7 +119,7 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 const DEFAULTS = [
   {g:'Morning', items:[
     ['Wake up at the same time','Same time every day, even weekends'],
@@ -144,11 +144,16 @@ const DEFAULTS = [
   ]},
 ];
 
-// storage with fallback
-const mem = {};
+// saved on the server so your progress is kept
+const API = '__PORT_8000__';
+let state = {};
+try { const r = await fetch(API + '/api/state'); if (r.ok) state = await r.json(); } catch(e) {}
+let saveTimer;
 const store = {
-  get(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null }catch(e){ return mem[k] ?? null } },
-  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){ mem[k] = v } }
+  get(k){ return state[k] ?? null },
+  set(k,v){ state[k] = v; clearTimeout(saveTimer); saveTimer = setTimeout(() => {
+    fetch(API + '/api/state', {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(state)}).catch(()=>{});
+  }, 250); }
 };
 
 let habits = store.get('ah_habits');
@@ -157,7 +162,7 @@ if(!habits){
   DEFAULTS.forEach(grp => grp.items.forEach(([name,tip]) => habits.push({id:'h'+(id++), g:grp.g, name, tip})));
   store.set('ah_habits', habits);
 }
-let log = store.get('ah_log') || {}; // { 'YYYY-MM-DD': { hId: 'y'|'n' } }
+let log = store.get('ah_log') || {};
 
 const pad = n => String(n).padStart(2,'0');
 const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
